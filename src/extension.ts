@@ -130,8 +130,7 @@ async function playSound(context: vscode.ExtensionContext): Promise<void> {
 async function playWav(soundPath: string): Promise<void> {
   const script = [
     '$player = New-Object Media.SoundPlayer $args[0]',
-    '$player.Play()',
-    'Start-Sleep -Milliseconds 250'
+    '$player.PlaySync()'
   ].join('; ');
 
   await runDetached(script, soundPath);
