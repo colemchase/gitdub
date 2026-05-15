@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { execFile } from 'child_process';
+import { spawn } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 
 type GitApi = {
@@ -113,25 +114,51 @@ function isGitPushCommand(commandLine: string): boolean {
 
 async function playSound(context: vscode.ExtensionContext): Promise<void> {
   const configuredPath = vscode.workspace.getConfiguration('gitdub').get<string>('soundPath')?.trim();
-  const defaultPath = path.join(context.extensionPath, 'src', 'yippee.m4a');
-  const soundPath = configuredPath || defaultPath;
+  const wavPath = path.join(context.extensionPath, 'src', 'yippee.wav');
+  const m4aPath = path.join(context.extensionPath, 'src', 'yippee.m4a');
+  const soundPath = configuredPath || (fs.existsSync(wavPath) ? wavPath : m4aPath);
+  const extension = path.extname(soundPath).toLowerCase();
+
+  if (extension === '.wav') {
+    await playWav(soundPath);
+    return;
+  }
+
+  await playMediaFile(soundPath);
+}
+
+async function playWav(soundPath: string): Promise<void> {
+  const script = [
+    '$player = New-Object Media.SoundPlayer $args[0]',
+    '$player.Play()',
+    'Start-Sleep -Milliseconds 250'
+  ].join('; ');
+
+  await runDetached(script, soundPath);
+}
+
+async function playMediaFile(soundPath: string): Promise<void> {
   const script = [
     '$player = New-Object -ComObject WMPlayer.OCX.7',
     '$null = $player.settings',
     '$player.URL = $args[0]',
     '$player.controls.play()',
-    '$deadline = (Get-Date).AddSeconds(15)',
-    'while ((Get-Date) -lt $deadline -and $player.playState -ne 1) { Start-Sleep -Milliseconds 200 }'
+    'Start-Sleep -Seconds 5'
   ].join('; ');
 
-  await new Promise<void>((resolve, reject) => {
-    const args = ['-NoProfile', '-Command', script, soundPath];
+  await runDetached(script, soundPath);
+}
 
-    execFile('powershell', args, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+async function runDetached(script: string, soundPath: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn('powershell', ['-NoProfile', '-WindowStyle', 'Hidden', '-Command', script, soundPath], {
+      detached: true,
+      stdio: 'ignore'
+    });
+
+    child.once('error', reject);
+    child.once('spawn', () => {
+      child.unref();
       resolve();
     });
   });

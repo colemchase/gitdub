@@ -7,6 +7,7 @@ Play a sound after a successful Git push in VS Code.
 Adds a `Gitdub: Push With Sound` command. It uses the built-in VS Code Git API to push, then plays:
 
 - `src/yippee.m4a` by default, or
+- `src/yippee.wav` first if present for faster playback, otherwise `src/yippee.m4a`, or
 - a custom sound file from `gitdub.soundPath`.
 
 It also listens for successful `git push` commands typed in the integrated terminal and plays the same sound.
