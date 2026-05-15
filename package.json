@@ -1,0 +1,51 @@
+{
+  "name": "gitdub",
+  "displayName": "gitdub",
+  "description": "Play a sound after a Git push in VS Code.",
+  "version": "0.0.1",
+  "publisher": "colem",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:gitdub.pushWithSound"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitdub.pushWithSound",
+        "title": "Gitdub: Push With Sound"
+      }
+    ],
+    "configuration": {
+      "title": "gitdub",
+      "properties": {
+        "gitdub.soundPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute path to a WAV file to play after a successful push."
+        },
+        "gitdub.listenForTerminalPush": {
+          "type": "boolean",
+          "default": true,
+          "description": "Play the sound when a typed git push succeeds in the integrated terminal."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/vscode": "^1.100.0",
+    "typescript": "^5.8.3"
+  }
+}
